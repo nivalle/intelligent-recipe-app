@@ -3,75 +3,356 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Intelligent Recipe App</title>
+    <title>🍳 Intelligent Recipe Parser</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f5f5f5;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
         }
+        
         .container {
             background-color: white;
             padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
+        
         h1 {
             color: #333;
             text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
         }
-        .status {
-            margin-top: 20px;
+        
+        .input-section {
+            margin-bottom: 30px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #555;
+            font-size: 1.1em;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 200px;
             padding: 15px;
-            border-radius: 5px;
-            background-color: #e8f5e8;
-            border: 1px solid #4caf50;
-            color: #2e7d32;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.2);
+        }
+        
+        .button-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .results {
+            display: none;
+            margin-top: 30px;
+        }
+        
+        .results h2 {
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .ingredients-section, .instructions-section {
+            margin-bottom: 30px;
+        }
+        
+        .ingredients-section h3, .instructions-section h3 {
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .ingredients-list, .instructions-list {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .ingredient-item, .instruction-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .ingredient-item:last-child, .instruction-item:last-child {
+            border-bottom: none;
+        }
+        
+        .ingredient-number, .instruction-number {
+            background-color: #667eea;
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .ingredient-text, .instruction-text {
+            flex: 1;
+            line-height: 1.5;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #f5c6cb;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .example-text {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .example-text h4 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+        
+        .example-text p {
+            margin: 5px 0;
+            color: #424242;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🍳 Intelligent Recipe App</h1>
-        <p>Welcome to the Intelligent Recipe App! Check the browser's developer console to see the API response.</p>
-        <div class="status" id="status">
-            Loading API response...
+        <h1>🍳 Intelligent Recipe Parser</h1>
+        
+        <div class="example-text">
+            <h4>💡 Example Recipe Format:</h4>
+            <p><strong>Chocolate Chip Cookies</strong></p>
+            <p>Ingredients: 2 cups flour, 1 cup sugar, 1/2 cup butter, 2 eggs, 1 tsp vanilla, 1 cup chocolate chips</p>
+            <p>Instructions: Preheat oven to 350°F. Mix flour and sugar. Add butter and eggs. Stir in chocolate chips. Bake for 12 minutes.</p>
+        </div>
+        
+        <div class="input-section">
+            <label for="recipeText">Paste your recipe text here:</label>
+            <textarea 
+                id="recipeText" 
+                placeholder="Paste your recipe text here... For example:&#10;&#10;Chocolate Chip Cookies&#10;&#10;Ingredients:&#10;- 2 cups all-purpose flour&#10;- 1 cup granulated sugar&#10;- 1/2 cup unsalted butter&#10;- 2 large eggs&#10;- 1 tsp vanilla extract&#10;- 1 cup chocolate chips&#10;&#10;Instructions:&#10;1. Preheat oven to 350°F (175°C)&#10;2. In a large bowl, cream together butter and sugar&#10;3. Beat in eggs and vanilla&#10;4. Gradually add flour and mix well&#10;5. Stir in chocolate chips&#10;6. Drop rounded tablespoons onto baking sheet&#10;7. Bake for 10-12 minutes until golden brown"
+            ></textarea>
+        </div>
+        
+        <div class="button-container">
+            <button id="parseButton" onclick="parseRecipe()">🔍 Parse Recipe</button>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing your recipe with AI...</p>
+        </div>
+        
+        <div class="error" id="error"></div>
+        
+        <div class="results" id="results">
+            <h2>📋 Parsed Recipe</h2>
+            
+            <div class="ingredients-section">
+                <h3>🥕 Ingredients</h3>
+                <div class="ingredients-list" id="ingredientsList">
+                    <!-- Ingredients will be populated here -->
+                </div>
+            </div>
+            
+            <div class="instructions-section">
+                <h3>👨‍🍳 Instructions</h3>
+                <div class="instructions-list" id="instructionsList">
+                    <!-- Instructions will be populated here -->
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // Function to fetch data from the API
-        async function fetchHelloMessage() {
+        async function parseRecipe() {
+            const recipeText = document.getElementById('recipeText').value.trim();
+            const parseButton = document.getElementById('parseButton');
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+            const error = document.getElementById('error');
+            
+            // Validate input
+            if (!recipeText) {
+                showError('Please enter some recipe text to parse.');
+                return;
+            }
+            
+            // Show loading state
+            parseButton.disabled = true;
+            loading.style.display = 'block';
+            results.style.display = 'none';
+            error.style.display = 'none';
+            
             try {
-                const response = await fetch('/api/hello');
+                const response = await fetch('/api/parse-recipe', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: recipeText })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to parse recipe');
+                }
+                
                 const data = await response.json();
+                displayResults(data);
                 
-                // Log the response to the console
-                console.log('API Response:', data);
-                
-                // Update the status div
-                const statusDiv = document.getElementById('status');
-                statusDiv.innerHTML = `✅ API Response received: <strong>${data.message}</strong>`;
-                statusDiv.style.backgroundColor = '#e8f5e8';
-                statusDiv.style.borderColor = '#4caf50';
-                statusDiv.style.color = '#2e7d32';
-                
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                
-                // Update the status div with error
-                const statusDiv = document.getElementById('status');
-                statusDiv.innerHTML = `❌ Error: ${error.message}`;
-                statusDiv.style.backgroundColor = '#ffebee';
-                statusDiv.style.borderColor = '#f44336';
-                statusDiv.style.color = '#c62828';
+            } catch (err) {
+                showError('Error: ' + err.message);
+            } finally {
+                // Hide loading state
+                parseButton.disabled = false;
+                loading.style.display = 'none';
             }
         }
-
-        // Call the function when the page loads
-        document.addEventListener('DOMContentLoaded', fetchHelloMessage);
+        
+        function displayResults(data) {
+            const results = document.getElementById('results');
+            const ingredientsList = document.getElementById('ingredientsList');
+            const instructionsList = document.getElementById('instructionsList');
+            
+            // Clear previous results
+            ingredientsList.innerHTML = '';
+            instructionsList.innerHTML = '';
+            
+            // Display ingredients
+            if (data.ingredients && data.ingredients.length > 0) {
+                data.ingredients.forEach((ingredient, index) => {
+                    const ingredientItem = document.createElement('div');
+                    ingredientItem.className = 'ingredient-item';
+                    ingredientItem.innerHTML = `
+                        <div class="ingredient-number">${index + 1}</div>
+                        <div class="ingredient-text">${ingredient}</div>
+                    `;
+                    ingredientsList.appendChild(ingredientItem);
+                });
+            } else {
+                ingredientsList.innerHTML = '<p>No ingredients found.</p>';
+            }
+            
+            // Display instructions
+            if (data.instructions && data.instructions.length > 0) {
+                data.instructions.forEach((instruction, index) => {
+                    const instructionItem = document.createElement('div');
+                    instructionItem.className = 'instruction-item';
+                    instructionItem.innerHTML = `
+                        <div class="instruction-number">${index + 1}</div>
+                        <div class="instruction-text">${instruction}</div>
+                    `;
+                    instructionsList.appendChild(instructionItem);
+                });
+            } else {
+                instructionsList.innerHTML = '<p>No instructions found.</p>';
+            }
+            
+            // Show results
+            results.style.display = 'block';
+            
+            // Scroll to results
+            results.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function showError(message) {
+            const error = document.getElementById('error');
+            error.textContent = message;
+            error.style.display = 'block';
+        }
+        
+        // Allow Enter key to trigger parsing (Ctrl+Enter)
+        document.getElementById('recipeText').addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                parseRecipe();
+            }
+        });
     </script>
 </body>
 </html>
