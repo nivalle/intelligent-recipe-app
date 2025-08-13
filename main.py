@@ -77,6 +77,9 @@ class RecipeResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class ModificationRequest(BaseModel):
+    prompt: str
+
 @app.get("/")
 async def read_index():
     """Serve the index.html file at the root URL"""
@@ -220,6 +223,83 @@ async def get_recipe(recipe_id: int, db: Session = Depends(get_db)):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving recipe: {str(e)}")
+
+@app.post("/api/recipes/{recipe_id}/modify")
+async def modify_recipe(recipe_id: int, modification_request: ModificationRequest, db: Session = Depends(get_db)):
+    """POST endpoint to modify a recipe using AI"""
+    
+    if not GOOGLE_API_KEY:
+        raise HTTPException(status_code=500, detail="Google API key not configured")
+    
+    if not model:
+        raise HTTPException(status_code=500, detail="Gemini model not available")
+    
+    try:
+        # Get the original recipe from the database
+        recipe = db.query(RecipeDB).filter(RecipeDB.id == recipe_id).first()
+        
+        if recipe is None:
+            raise HTTPException(status_code=404, detail=f"Recipe with ID {recipe_id} not found")
+        
+        # Create a detailed prompt for recipe modification
+        prompt = f"""
+        Please modify the following recipe based on the user's request.
+        
+        Original Recipe:
+        Title: {recipe.title}
+        Ingredients: {recipe.ingredients}
+        Instructions: {recipe.instructions}
+        
+        User's Modification Request: {modification_request.prompt}
+        
+        Please modify the recipe according to the user's request. Return ONLY a valid JSON object with this exact structure:
+        {{
+            "ingredients": ["modified ingredient 1", "modified ingredient 2", ...],
+            "instructions": ["modified step 1", "modified step 2", ...]
+        }}
+        
+        Rules:
+        - Modify ingredients and instructions according to the user's request
+        - Keep the same cooking method and general approach
+        - Ensure the modified recipe is still functional and complete
+        - Return ONLY the JSON object, no additional text
+        - Ensure the JSON is valid and properly formatted
+        """
+        
+        # Generate response from Gemini
+        response = model.generate_content(prompt)
+        
+        # Extract the text response
+        response_text = response.text.strip()
+        
+        # Try to parse the JSON response
+        try:
+            # Remove any markdown formatting if present
+            if response_text.startswith("```json"):
+                response_text = response_text.replace("```json", "").replace("```", "").strip()
+            elif response_text.startswith("```"):
+                response_text = response_text.replace("```", "").strip()
+            
+            modified_recipe = json.loads(response_text)
+            
+            # Validate the structure
+            if "ingredients" not in modified_recipe or "instructions" not in modified_recipe:
+                raise ValueError("Missing required fields")
+            
+            if not isinstance(modified_recipe["ingredients"], list) or not isinstance(modified_recipe["instructions"], list):
+                raise ValueError("Invalid field types")
+            
+            return modified_recipe
+            
+        except json.JSONDecodeError as e:
+            raise HTTPException(status_code=500, detail=f"Failed to parse AI response as JSON: {str(e)}")
+        except ValueError as e:
+            raise HTTPException(status_code=500, detail=f"Invalid response structure: {str(e)}")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error modifying recipe: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
