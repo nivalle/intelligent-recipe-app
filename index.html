@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intelligent Recipe App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #e8f5e8;
+            border: 1px solid #4caf50;
+            color: #2e7d32;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍳 Intelligent Recipe App</h1>
+        <p>Welcome to the Intelligent Recipe App! Check the browser's developer console to see the API response.</p>
+        <div class="status" id="status">
+            Loading API response...
+        </div>
+    </div>
+
+    <script>
+        // Function to fetch data from the API
+        async function fetchHelloMessage() {
+            try {
+                const response = await fetch('/api/hello');
+                const data = await response.json();
+                
+                // Log the response to the console
+                console.log('API Response:', data);
+                
+                // Update the status div
+                const statusDiv = document.getElementById('status');
+                statusDiv.innerHTML = `✅ API Response received: <strong>${data.message}</strong>`;
+                statusDiv.style.backgroundColor = '#e8f5e8';
+                statusDiv.style.borderColor = '#4caf50';
+                statusDiv.style.color = '#2e7d32';
+                
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                
+                // Update the status div with error
+                const statusDiv = document.getElementById('status');
+                statusDiv.innerHTML = `❌ Error: ${error.message}`;
+                statusDiv.style.backgroundColor = '#ffebee';
+                statusDiv.style.borderColor = '#f44336';
+                statusDiv.style.color = '#c62828';
+            }
+        }
+
+        // Call the function when the page loads
+        document.addEventListener('DOMContentLoaded', fetchHelloMessage);
+    </script>
+</body>
+</html>
