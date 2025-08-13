@@ -237,6 +237,13 @@
             list-style: none;
             position: relative;
             padding-left: 30px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        
+        .library-list li:hover {
+            background-color: #e3f2fd;
+            color: #1976d2;
         }
         
         .library-list li:before {
@@ -500,12 +507,36 @@
                 recipes.forEach(recipe => {
                     const listItem = document.createElement('li');
                     listItem.textContent = recipe.title;
+                    listItem.style.cursor = 'pointer';
+                    listItem.onclick = () => displayRecipeById(recipe.id);
                     libraryList.appendChild(listItem);
                 });
                 
             } catch (err) {
                 console.error('Error loading library:', err);
                 libraryList.innerHTML = '<li style="color: #dc3545;">Error loading recipes</li>';
+            }
+        }
+        
+        async function displayRecipeById(recipeId) {
+            try {
+                const response = await fetch(`/api/recipes/${recipeId}`);
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to load recipe');
+                }
+                
+                const recipeData = await response.json();
+                
+                // Display the recipe using the existing displayResults function
+                displayResults(recipeData);
+                
+                // Scroll to the results section
+                document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (err) {
+                showError('Error loading recipe: ' + err.message);
             }
         }
         
