@@ -201,6 +201,26 @@ async def get_recipes(db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving recipes: {str(e)}")
 
+@app.get("/api/recipes/{recipe_id}", response_model=RecipeResponse)
+async def get_recipe(recipe_id: int, db: Session = Depends(get_db)):
+    """GET endpoint to retrieve a single recipe by ID"""
+    try:
+        recipe = db.query(RecipeDB).filter(RecipeDB.id == recipe_id).first()
+        
+        if recipe is None:
+            raise HTTPException(status_code=404, detail=f"Recipe with ID {recipe_id} not found")
+        
+        return RecipeResponse(
+            id=recipe.id,
+            title=recipe.title,
+            ingredients=recipe.ingredients,
+            instructions=recipe.instructions
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving recipe: {str(e)}")
+
 if __name__ == "__main__":
     import uvicorn
     print(f"🚀 Starting {APP_NAME} on {HOST}:{PORT}")
