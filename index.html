@@ -272,6 +272,138 @@
             background: linear-gradient(90deg, transparent, #667eea, transparent);
             margin: 40px 0;
         }
+        
+        .modification-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e9ecef;
+        }
+        
+        .modification-section h3 {
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .modification-input {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .modification-input input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .modification-input input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.2);
+        }
+        
+        .modification-input button {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        
+        .modification-input button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+        
+        .modification-input button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .comparison-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .recipe-column {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .recipe-column.modified {
+            border-left-color: #ff6b6b;
+        }
+        
+        .recipe-column h4 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            text-align: center;
+        }
+        
+        .recipe-column .ingredients-list,
+        .recipe-column .instructions-list {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .recipe-column .ingredient-item,
+        .recipe-column .instruction-item {
+            padding: 6px 0;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .recipe-column .ingredient-item:last-child,
+        .recipe-column .instruction-item:last-child {
+            border-bottom: none;
+        }
+        
+        .recipe-column .ingredient-number,
+        .recipe-column .instruction-number {
+            background-color: #667eea;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        
+        .recipe-column.modified .ingredient-number,
+        .recipe-column.modified .instruction-number {
+            background-color: #ff6b6b;
+        }
+        
+        .recipe-column .ingredient-text,
+        .recipe-column .instruction-text {
+            flex: 1;
+            line-height: 1.4;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body onload="loadLibrary()">
@@ -321,6 +453,14 @@
                     <!-- Instructions will be populated here -->
                 </div>
             </div>
+            
+            <div class="modification-section" id="modificationSection" style="display: none;">
+                <h3>🔧 Modify Recipe</h3>
+                <div class="modification-input">
+                    <input type="text" id="modificationText" placeholder="Enter modification (e.g., 'make this vegan', 'add more spice')" />
+                    <button id="modifyButton" onclick="modifyRecipe()">Modify Recipe</button>
+                </div>
+            </div>
         </div>
         
         <hr>
@@ -334,8 +474,9 @@
     </div>
 
     <script>
-        // Global variable to store the most recently parsed recipe
+        // Global variables to store the most recently parsed recipe and current recipe ID
         let currentRecipe = null;
+        let currentRecipeId = null;
         
         async function parseRecipe() {
             const recipeText = document.getElementById('recipeText').value.trim();
@@ -391,10 +532,11 @@
             }
         }
         
-        function displayResults(data) {
+        function displayResults(data, recipeId = null) {
             const results = document.getElementById('results');
             const ingredientsList = document.getElementById('ingredientsList');
             const instructionsList = document.getElementById('instructionsList');
+            const modificationSection = document.getElementById('modificationSection');
             
             // Clear previous results
             ingredientsList.innerHTML = '';
@@ -432,6 +574,14 @@
             
             // Show results
             results.style.display = 'block';
+            
+            // Show modification section if we have a recipe ID (from database)
+            if (recipeId) {
+                currentRecipeId = recipeId;
+                modificationSection.style.display = 'block';
+            } else {
+                modificationSection.style.display = 'none';
+            }
             
             // Scroll to results
             results.scrollIntoView({ behavior: 'smooth' });
@@ -530,13 +680,176 @@
                 const recipeData = await response.json();
                 
                 // Display the recipe using the existing displayResults function
-                displayResults(recipeData);
+                displayResults(recipeData, recipeId);
                 
                 // Scroll to the results section
                 document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
                 
             } catch (err) {
                 showError('Error loading recipe: ' + err.message);
+            }
+        }
+        
+        async function modifyRecipe() {
+            if (!currentRecipeId) {
+                showError('No recipe selected for modification.');
+                return;
+            }
+            
+            const modificationText = document.getElementById('modificationText').value.trim();
+            const modifyButton = document.getElementById('modifyButton');
+            
+            if (!modificationText) {
+                showError('Please enter a modification instruction.');
+                return;
+            }
+            
+            // Disable the modify button during processing
+            modifyButton.disabled = true;
+            modifyButton.textContent = 'Modifying...';
+            
+            try {
+                const response = await fetch(`/api/recipes/${currentRecipeId}/modify`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ prompt: modificationText })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to modify recipe');
+                }
+                
+                const modifiedRecipe = await response.json();
+                
+                // Get the original recipe data
+                const originalResponse = await fetch(`/api/recipes/${currentRecipeId}`);
+                const originalRecipe = await originalResponse.json();
+                
+                // Display comparison view
+                displayComparison(originalRecipe, modifiedRecipe, modificationText);
+                
+            } catch (err) {
+                showError('Error modifying recipe: ' + err.message);
+            } finally {
+                // Re-enable the modify button
+                modifyButton.disabled = false;
+                modifyButton.textContent = 'Modify Recipe';
+            }
+        }
+        
+        function displayComparison(originalRecipe, modifiedRecipe, modificationText) {
+            const results = document.getElementById('results');
+            
+            results.innerHTML = `
+                <h2>🔄 Recipe Comparison</h2>
+                <p style="text-align: center; color: #666; margin-bottom: 20px;">
+                    <strong>Modification:</strong> ${modificationText}
+                </p>
+                <div class="comparison-container">
+                    <div class="recipe-column">
+                        <h4>📋 Original Recipe</h4>
+                        <div class="ingredients-section">
+                            <h5>🥕 Ingredients</h5>
+                            <div class="ingredients-list">
+                                ${originalRecipe.ingredients.map((ingredient, index) => `
+                                    <div class="ingredient-item">
+                                        <div class="ingredient-number">${index + 1}</div>
+                                        <div class="ingredient-text">${ingredient}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="instructions-section">
+                            <h5>👨‍🍳 Instructions</h5>
+                            <div class="instructions-list">
+                                ${originalRecipe.instructions.map((instruction, index) => `
+                                    <div class="instruction-item">
+                                        <div class="instruction-number">${index + 1}</div>
+                                        <div class="instruction-text">${instruction}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="recipe-column modified">
+                        <h4>✨ Modified Recipe</h4>
+                        <div class="ingredients-section">
+                            <h5>🥕 Ingredients</h5>
+                            <div class="ingredients-list">
+                                ${modifiedRecipe.ingredients.map((ingredient, index) => `
+                                    <div class="ingredient-item">
+                                        <div class="ingredient-number">${index + 1}</div>
+                                        <div class="ingredient-text">${ingredient}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="instructions-section">
+                            <h5>👨‍🍳 Instructions</h5>
+                            <div class="instructions-list">
+                                ${modifiedRecipe.instructions.map((instruction, index) => `
+                                    <div class="instruction-item">
+                                        <div class="instruction-number">${index + 1}</div>
+                                        <div class="instruction-text">${instruction}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button onclick="displayResults(${JSON.stringify(originalRecipe)}, ${currentRecipeId})" style="background: #667eea; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 0 10px;">
+                        ← Back to Original
+                    </button>
+                    <button onclick="saveModifiedRecipe(${JSON.stringify(modifiedRecipe).replace(/"/g, '&quot;')})" style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 0 10px;">
+                        💾 Save Modified Recipe
+                    </button>
+                </div>
+            `;
+            
+            results.style.display = 'block';
+            results.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        async function saveModifiedRecipe(modifiedRecipe) {
+            const title = prompt('Enter a title for the modified recipe:');
+            
+            if (!title || title.trim() === '') {
+                showError('Recipe title is required.');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/recipes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: title.trim(),
+                        ingredients: modifiedRecipe.ingredients,
+                        instructions: modifiedRecipe.instructions
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to save modified recipe');
+                }
+                
+                const savedRecipe = await response.json();
+                
+                // Show success message
+                showSuccess(`Modified recipe "${savedRecipe.title}" saved successfully!`);
+                
+                // Refresh the library
+                await loadLibrary();
+                
+            } catch (err) {
+                showError('Error saving modified recipe: ' + err.message);
             }
         }
         
