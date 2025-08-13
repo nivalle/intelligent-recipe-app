@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -6,6 +6,10 @@ import os
 from dotenv import load_dotenv
 import google.generativeai as genai
 import json
+from sqlalchemy import create_engine, Column, Integer, String, JSON
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, Session
+from typing import List, Optional
 
 # Load environment variables from .env file
 load_dotenv()
@@ -24,14 +28,54 @@ if GOOGLE_API_KEY:
 else:
     model = None
 
+# Database Setup
+SQLALCHEMY_DATABASE_URL = "sqlite:///./recipes.db"
+engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+
+# SQLAlchemy Model
+class RecipeDB(Base):
+    __tablename__ = "recipes"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, index=True)
+    ingredients = Column(JSON)
+    instructions = Column(JSON)
+
+# Create tables
+Base.metadata.create_all(bind=engine)
+
+# Dependency to get database session
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
 app = FastAPI(title=APP_NAME)
 
 # Mount static files directory
 app.mount("/static", StaticFiles(directory="."), name="static")
 
-# Pydantic model for request validation
+# Pydantic Models
 class RecipeText(BaseModel):
     text: str
+
+class RecipeCreate(BaseModel):
+    title: str
+    ingredients: List[str]
+    instructions: List[str]
+
+class RecipeResponse(BaseModel):
+    id: int
+    title: str
+    ingredients: List[str]
+    instructions: List[str]
+    
+    class Config:
+        from_attributes = True
 
 @app.get("/")
 async def read_index():
@@ -117,6 +161,45 @@ async def parse_recipe(recipe_data: RecipeText):
             
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing recipe: {str(e)}")
+
+@app.post("/api/recipes", response_model=RecipeResponse)
+async def create_recipe(recipe: RecipeCreate, db: Session = Depends(get_db)):
+    """POST endpoint to create a new recipe in the database"""
+    try:
+        db_recipe = RecipeDB(
+            title=recipe.title,
+            ingredients=recipe.ingredients,
+            instructions=recipe.instructions
+        )
+        db.add(db_recipe)
+        db.commit()
+        db.refresh(db_recipe)
+        return RecipeResponse(
+            id=db_recipe.id,
+            title=db_recipe.title,
+            ingredients=db_recipe.ingredients,
+            instructions=db_recipe.instructions
+        )
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error creating recipe: {str(e)}")
+
+@app.get("/api/recipes", response_model=List[RecipeResponse])
+async def get_recipes(db: Session = Depends(get_db)):
+    """GET endpoint to retrieve all recipes from the database"""
+    try:
+        recipes = db.query(RecipeDB).all()
+        return [
+            RecipeResponse(
+                id=recipe.id,
+                title=recipe.title,
+                ingredients=recipe.ingredients,
+                instructions=recipe.instructions
+            )
+            for recipe in recipes
+        ]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving recipes: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
