@@ -331,6 +331,241 @@
             box-shadow: none;
         }
         
+        .recipe-actions {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #28a745;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .action-buttons button {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            font-weight: bold;
+        }
+        
+        .action-buttons button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+        
+        .photo-upload,
+        .rating-form,
+        .recipe-history {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #17a2b8;
+        }
+        
+        .photo-upload input[type="file"],
+        .photo-upload input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .photo-buttons,
+        .rating-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .photo-buttons button,
+        .rating-buttons button {
+            background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .photo-buttons button:hover,
+        .rating-buttons button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .star-rating {
+            display: flex;
+            gap: 5px;
+            margin: 15px 0;
+        }
+        
+        .star {
+            font-size: 30px;
+            color: #ddd;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+        
+        .star:hover,
+        .star.active {
+            color: #ffc107;
+        }
+        
+        .star-rating:hover .star {
+            color: #ffc107;
+        }
+        
+        .star-rating .star:hover ~ .star {
+            color: #ddd;
+        }
+        
+        #reviewText {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .history-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .history-item {
+            padding: 15px;
+            margin: 10px 0;
+            background-color: white;
+            border-radius: 8px;
+            border-left: 4px solid #6f42c1;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .history-item:hover {
+            transform: translateX(5px);
+        }
+        
+        .history-item h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        
+        .history-item .version-info {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .comparison-view {
+            margin-top: 30px;
+        }
+        
+        .comparison-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 20px 0;
+        }
+        
+        .recipe-column {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .recipe-column.original {
+            border-left-color: #667eea;
+        }
+        
+        .recipe-column.modified {
+            border-left-color: #ff6b6b;
+        }
+        
+        .recipe-column h4 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            text-align: center;
+        }
+        
+        .recipe-column .ingredients-list,
+        .recipe-column .instructions-list {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .recipe-column .ingredient-item,
+        .recipe-column .instruction-item {
+            padding: 6px 0;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .recipe-column .ingredient-item:last-child,
+        .recipe-column .instruction-item:last-child {
+            border-bottom: none;
+        }
+        
+        .recipe-column .ingredient-number,
+        .recipe-column .instruction-number {
+            background-color: #667eea;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        
+        .recipe-column.modified .ingredient-number,
+        .recipe-column.modified .instruction-number {
+            background-color: #ff6b6b;
+        }
+        
+        .comparison-actions {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .comparison-actions button {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: transform 0.2s ease;
+        }
+        
+        .comparison-actions button:hover {
+            transform: translateY(-2px);
+        }
 
     </style>
 </head>
@@ -388,6 +623,88 @@
                 <div class="instructions-list" id="instructionsList">
                     <!-- Instructions will be populated here -->
                 </div>
+            </div>
+        </div>
+        
+        <div class="recipe-actions" id="recipeActions" style="display: none;">
+            <h3>📸 Recipe Actions</h3>
+            <div class="action-buttons">
+                <button id="addPhotoButton" onclick="showPhotoUpload()">📷 Add Photo</button>
+                <button id="addRatingButton" onclick="showRatingForm()">⭐ Add Rating</button>
+                <button id="viewHistoryButton" onclick="viewRecipeHistory()">📚 View History</button>
+            </div>
+        </div>
+        
+        <div class="photo-upload" id="photoUpload" style="display: none;">
+            <h3>📷 Add Recipe Photo</h3>
+            <input type="file" id="photoInput" accept="image/*" />
+            <input type="text" id="photoDescription" placeholder="Photo description (optional)" />
+            <div class="photo-buttons">
+                <button onclick="uploadPhoto()">Upload Photo</button>
+                <button onclick="hidePhotoUpload()">Cancel</button>
+            </div>
+        </div>
+        
+        <div class="rating-form" id="ratingForm" style="display: none;">
+            <h3>⭐ Rate This Recipe</h3>
+            <div class="star-rating">
+                <span class="star" data-rating="1">★</span>
+                <span class="star" data-rating="2">★</span>
+                <span class="star" data-rating="3">★</span>
+                <span class="star" data-rating="4">★</span>
+                <span class="star" data-rating="5">★</span>
+            </div>
+            <textarea id="reviewText" placeholder="Write your review (optional)"></textarea>
+            <div class="rating-buttons">
+                <button onclick="submitRating()">Submit Rating</button>
+                <button onclick="hideRatingForm()">Cancel</button>
+            </div>
+        </div>
+        
+        <div class="recipe-history" id="recipeHistory" style="display: none;">
+            <h3>📚 Recipe History</h3>
+            <div class="history-list" id="historyList">
+                <!-- Recipe versions will be populated here -->
+            </div>
+        </div>
+        
+        <div class="comparison-view" id="comparisonView" style="display: none;">
+            <h3>🔄 Recipe Comparison</h3>
+            <div class="comparison-container">
+                <div class="recipe-column original">
+                    <h4>📋 Original Recipe</h4>
+                    <div class="ingredients-section">
+                        <h5>🥕 Ingredients</h5>
+                        <div class="ingredients-list" id="originalIngredientsList">
+                            <!-- Original ingredients will be populated here -->
+                        </div>
+                    </div>
+                    <div class="instructions-section">
+                        <h5>👨‍🍳 Instructions</h5>
+                        <div class="instructions-list" id="originalInstructionsList">
+                            <!-- Original instructions will be populated here -->
+                        </div>
+                    </div>
+                </div>
+                <div class="recipe-column modified">
+                    <h4>✨ Modified Recipe</h4>
+                    <div class="ingredients-section">
+                        <h5>🥕 Ingredients</h5>
+                        <div class="ingredients-list" id="modifiedIngredientsList">
+                            <!-- Modified ingredients will be populated here -->
+                        </div>
+                    </div>
+                    <div class="instructions-section">
+                        <h5>👨‍🍳 Instructions</h5>
+                        <div class="instructions-list" id="modifiedInstructionsList">
+                            <!-- Modified instructions will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="comparison-actions">
+                <button onclick="saveModifiedVersion()">💾 Save Modified Version</button>
+                <button onclick="hideComparison()">← Back to Recipe</button>
             </div>
         </div>
         
@@ -678,7 +995,409 @@
             }
         }
         
-
+        // Global variables for new features
+        let selectedRating = 0;
+        let originalRecipeForComparison = null;
+        
+        // Photo upload functions
+        function showPhotoUpload() {
+            document.getElementById('photoUpload').style.display = 'block';
+            document.getElementById('photoInput').value = '';
+            document.getElementById('photoDescription').value = '';
+        }
+        
+        function hidePhotoUpload() {
+            document.getElementById('photoUpload').style.display = 'none';
+        }
+        
+        async function uploadPhoto() {
+            const fileInput = document.getElementById('photoInput');
+            const description = document.getElementById('photoDescription').value;
+            
+            if (!fileInput.files[0]) {
+                showError('Please select a photo to upload.');
+                return;
+            }
+            
+            if (!currentRecipeId) {
+                showError('No recipe selected for photo upload.');
+                return;
+            }
+            
+            try {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = async function(e) {
+                    const base64Data = e.target.result.split(',')[1]; // Remove data:image/...;base64, prefix
+                    
+                    const response = await fetch(`/api/recipes/${currentRecipeId}/photos`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            photo_data: base64Data,
+                            photo_description: description
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.detail || 'Failed to upload photo');
+                    }
+                    
+                    showSuccess('Photo uploaded successfully!');
+                    hidePhotoUpload();
+                };
+                
+                reader.readAsDataURL(file);
+                
+            } catch (err) {
+                showError('Error uploading photo: ' + err.message);
+            }
+        }
+        
+        // Rating functions
+        function showRatingForm() {
+            document.getElementById('ratingForm').style.display = 'block';
+            selectedRating = 0;
+            updateStarDisplay();
+            document.getElementById('reviewText').value = '';
+        }
+        
+        function hideRatingForm() {
+            document.getElementById('ratingForm').style.display = 'none';
+        }
+        
+        function updateStarDisplay() {
+            const stars = document.querySelectorAll('.star');
+            stars.forEach((star, index) => {
+                if (index < selectedRating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+        }
+        
+        // Add event listeners for star rating
+        document.addEventListener('DOMContentLoaded', function() {
+            const stars = document.querySelectorAll('.star');
+            stars.forEach(star => {
+                star.addEventListener('click', function() {
+                    selectedRating = parseInt(this.getAttribute('data-rating'));
+                    updateStarDisplay();
+                });
+            });
+        });
+        
+        async function submitRating() {
+            if (selectedRating === 0) {
+                showError('Please select a rating.');
+                return;
+            }
+            
+            if (!currentRecipeId) {
+                showError('No recipe selected for rating.');
+                return;
+            }
+            
+            const review = document.getElementById('reviewText').value;
+            
+            try {
+                const response = await fetch(`/api/recipes/${currentRecipeId}/ratings`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        rating: selectedRating,
+                        review: review
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to submit rating');
+                }
+                
+                showSuccess('Rating submitted successfully!');
+                hideRatingForm();
+                
+            } catch (err) {
+                showError('Error submitting rating: ' + err.message);
+            }
+        }
+        
+        // Recipe history functions
+        async function viewRecipeHistory() {
+            if (!currentRecipeId) {
+                showError('No recipe selected for history view.');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/recipes/${currentRecipeId}/history`);
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to load recipe history');
+                }
+                
+                const historyData = await response.json();
+                displayRecipeHistory(historyData);
+                
+            } catch (err) {
+                showError('Error loading recipe history: ' + err.message);
+            }
+        }
+        
+        function displayRecipeHistory(historyData) {
+            const historyList = document.getElementById('historyList');
+            historyList.innerHTML = '';
+            
+            // Add base recipe
+            const baseItem = document.createElement('div');
+            baseItem.className = 'history-item';
+            baseItem.innerHTML = `
+                <h4>${historyData.base_recipe.title} (Original)</h4>
+                <div class="version-info">Created: ${new Date(historyData.base_recipe.created_at).toLocaleDateString()}</div>
+            `;
+            baseItem.onclick = () => displayResults(historyData.base_recipe, historyData.base_recipe.id);
+            historyList.appendChild(baseItem);
+            
+            // Add versions
+            historyData.versions.forEach((version, index) => {
+                if (version.id !== historyData.base_recipe.id) {
+                    const versionItem = document.createElement('div');
+                    versionItem.className = 'history-item';
+                    versionItem.innerHTML = `
+                        <h4>${version.title} (Version ${index + 1})</h4>
+                        <div class="version-info">Created: ${new Date(version.created_at).toLocaleDateString()}</div>
+                    `;
+                    versionItem.onclick = () => displayResults(version, version.id);
+                    historyList.appendChild(versionItem);
+                }
+            });
+            
+            document.getElementById('recipeHistory').style.display = 'block';
+        }
+        
+        // Comparison functions
+        async function showComparison(originalRecipe, modifiedRecipe) {
+            originalRecipeForComparison = originalRecipe;
+            
+            // Display original recipe
+            displayComparisonColumn('originalIngredientsList', 'originalInstructionsList', originalRecipe);
+            
+            // Display modified recipe
+            displayComparisonColumn('modifiedIngredientsList', 'modifiedInstructionsList', modifiedRecipe);
+            
+            document.getElementById('comparisonView').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+        }
+        
+        function displayComparisonColumn(ingredientsId, instructionsId, recipe) {
+            const ingredientsList = document.getElementById(ingredientsId);
+            const instructionsList = document.getElementById(instructionsId);
+            
+            // Clear previous content
+            ingredientsList.innerHTML = '';
+            instructionsList.innerHTML = '';
+            
+            // Display ingredients
+            if (recipe.ingredients && recipe.ingredients.length > 0) {
+                recipe.ingredients.forEach((ingredient, index) => {
+                    const ingredientItem = document.createElement('div');
+                    ingredientItem.className = 'ingredient-item';
+                    ingredientItem.innerHTML = `
+                        <div class="ingredient-number">${index + 1}</div>
+                        <div class="ingredient-text">${ingredient}</div>
+                    `;
+                    ingredientsList.appendChild(ingredientItem);
+                });
+            }
+            
+            // Display instructions
+            if (recipe.instructions && recipe.instructions.length > 0) {
+                recipe.instructions.forEach((instruction, index) => {
+                    const instructionItem = document.createElement('div');
+                    instructionItem.className = 'instruction-item';
+                    instructionItem.innerHTML = `
+                        <div class="instruction-number">${index + 1}</div>
+                        <div class="instruction-text">${instruction}</div>
+                    `;
+                    instructionsList.appendChild(instructionItem);
+                });
+            }
+        }
+        
+        async function saveModifiedVersion() {
+            if (!originalRecipeForComparison || !currentRecipe) {
+                showError('No recipe to save.');
+                return;
+            }
+            
+            const title = prompt('Enter a title for the modified version:');
+            
+            if (!title || title.trim() === '') {
+                showError('Recipe title is required.');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/recipes/${originalRecipeForComparison.id}/save-modified`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: title.trim(),
+                        ingredients: currentRecipe.ingredients,
+                        instructions: currentRecipe.instructions
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to save modified version');
+                }
+                
+                const savedRecipe = await response.json();
+                
+                showSuccess(`Modified version "${savedRecipe.title}" saved successfully!`);
+                hideComparison();
+                await loadLibrary();
+                
+            } catch (err) {
+                showError('Error saving modified version: ' + err.message);
+            }
+        }
+        
+        function hideComparison() {
+            document.getElementById('comparisonView').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+            originalRecipeForComparison = null;
+        }
+        
+        // Update existing functions to show recipe actions for saved recipes
+        async function displayRecipeById(recipeId) {
+            try {
+                const response = await fetch(`/api/recipes/${recipeId}`);
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to load recipe');
+                }
+                
+                const recipeData = await response.json();
+                
+                // Hide modification section for database recipes (it's only for parsed recipes)
+                document.getElementById('modificationSection').style.display = 'none';
+                
+                // Show recipe actions for saved recipes
+                document.getElementById('recipeActions').style.display = 'block';
+                
+                // Display the recipe using the existing displayResults function
+                displayResults(recipeData, recipeId);
+                
+                // Scroll to the results section
+                document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (err) {
+                showError('Error loading recipe: ' + err.message);
+            }
+        }
+        
+        // Update modifyRecipe function to show comparison
+        async function modifyRecipe() {
+            if (!currentRecipe) {
+                showError('No recipe to modify. Please parse a recipe first.');
+                return;
+            }
+            
+            const modificationText = document.getElementById('modificationText').value.trim();
+            const modifyButton = document.getElementById('modifyButton');
+            
+            if (!modificationText) {
+                showError('Please enter a modification instruction.');
+                return;
+            }
+            
+            // Store original recipe for comparison
+            const originalRecipe = { ...currentRecipe };
+            
+            // Disable the modify button during processing
+            modifyButton.disabled = true;
+            modifyButton.textContent = 'Modifying...';
+            
+            try {
+                const response = await fetch('/api/modify-transient-recipe', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt: modificationText,
+                        ingredients: currentRecipe.ingredients,
+                        instructions: currentRecipe.instructions
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to modify recipe');
+                }
+                
+                const modifiedRecipe = await response.json();
+                
+                // Update the currentRecipe with the modified data
+                currentRecipe = modifiedRecipe;
+                
+                // Show comparison view
+                showComparison(originalRecipe, modifiedRecipe);
+                
+                // Clear the modification input
+                document.getElementById('modificationText').value = '';
+                
+            } catch (err) {
+                showError('Error modifying recipe: ' + err.message);
+            } finally {
+                // Re-enable the modify button
+                modifyButton.disabled = false;
+                modifyButton.textContent = 'Modify Recipe';
+            }
+        }
+        
+        // Update displayRecipeById to show recipe actions for saved recipes
+        async function displayRecipeById(recipeId) {
+            try {
+                const response = await fetch(`/api/recipes/${recipeId}`);
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to load recipe');
+                }
+                
+                const recipeData = await response.json();
+                
+                // Hide modification section for database recipes (it's only for parsed recipes)
+                document.getElementById('modificationSection').style.display = 'none';
+                
+                // Show recipe actions for saved recipes
+                document.getElementById('recipeActions').style.display = 'block';
+                
+                // Display the recipe using the existing displayResults function
+                displayResults(recipeData, recipeId);
+                
+                // Scroll to the results section
+                document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (err) {
+                showError('Error loading recipe: ' + err.message);
+            }
+        }
         
         function showError(message) {
             const error = document.getElementById('error');
@@ -710,6 +1429,17 @@
                 successDiv.remove();
             }, 3000);
         }
+        
+        // Add event listeners for star rating
+        document.addEventListener('DOMContentLoaded', function() {
+            const stars = document.querySelectorAll('.star');
+            stars.forEach(star => {
+                star.addEventListener('click', function() {
+                    selectedRating = parseInt(this.getAttribute('data-rating'));
+                    updateStarDisplay();
+                });
+            });
+        });
         
         // Allow Enter key to trigger parsing (Ctrl+Enter)
         document.getElementById('recipeText').addEventListener('keydown', function(e) {

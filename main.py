@@ -6,10 +6,11 @@ import os
 from dotenv import load_dotenv
 import google.generativeai as genai
 import json
-from sqlalchemy import create_engine, Column, Integer, String, JSON
+from sqlalchemy import create_engine, Column, Integer, String, JSON, DateTime, Float, Text, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import sessionmaker, Session, relationship
 from typing import List, Optional
+from datetime import datetime
 
 # Load environment variables from .env file
 load_dotenv()
@@ -34,7 +35,7 @@ engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# SQLAlchemy Model
+# SQLAlchemy Models
 class RecipeDB(Base):
     __tablename__ = "recipes"
     
@@ -42,6 +43,37 @@ class RecipeDB(Base):
     title = Column(String, index=True)
     ingredients = Column(JSON)
     instructions = Column(JSON)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    parent_id = Column(Integer, ForeignKey("recipes.id"), nullable=True)
+    
+    # Relationships
+    versions = relationship("RecipeDB", backref="parent", remote_side=[id])
+    photos = relationship("RecipePhoto", back_populates="recipe")
+    ratings = relationship("RecipeRating", back_populates="recipe")
+
+class RecipePhoto(Base):
+    __tablename__ = "recipe_photos"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    recipe_id = Column(Integer, ForeignKey("recipes.id"))
+    photo_data = Column(Text)  # Base64 encoded image
+    photo_description = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationship
+    recipe = relationship("RecipeDB", back_populates="photos")
+
+class RecipeRating(Base):
+    __tablename__ = "recipe_ratings"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    recipe_id = Column(Integer, ForeignKey("recipes.id"))
+    rating = Column(Float)  # 1-5 stars
+    review = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationship
+    recipe = relationship("RecipeDB", back_populates="ratings")
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -67,12 +99,57 @@ class RecipeCreate(BaseModel):
     title: str
     ingredients: List[str]
     instructions: List[str]
+    parent_id: Optional[int] = None
 
 class RecipeResponse(BaseModel):
     id: int
     title: str
     ingredients: List[str]
     instructions: List[str]
+    created_at: datetime
+    parent_id: Optional[int]
+    
+    class Config:
+        from_attributes = True
+
+class RecipePhotoCreate(BaseModel):
+    photo_data: str  # Base64 encoded image
+    photo_description: Optional[str] = None
+
+class RecipePhotoResponse(BaseModel):
+    id: int
+    recipe_id: int
+    photo_data: str
+    photo_description: Optional[str]
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+class RecipeRatingCreate(BaseModel):
+    rating: float  # 1-5 stars
+    review: Optional[str] = None
+
+class RecipeRatingResponse(BaseModel):
+    id: int
+    recipe_id: int
+    rating: float
+    review: Optional[str]
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+class RecipeWithHistoryResponse(BaseModel):
+    id: int
+    title: str
+    ingredients: List[str]
+    instructions: List[str]
+    created_at: datetime
+    parent_id: Optional[int]
+    versions: List['RecipeResponse'] = []
+    photos: List[RecipePhotoResponse] = []
+    ratings: List[RecipeRatingResponse] = []
     
     class Config:
         from_attributes = True
@@ -177,7 +254,8 @@ async def create_recipe(recipe: RecipeCreate, db: Session = Depends(get_db)):
         db_recipe = RecipeDB(
             title=recipe.title,
             ingredients=recipe.ingredients,
-            instructions=recipe.instructions
+            instructions=recipe.instructions,
+            parent_id=recipe.parent_id
         )
         db.add(db_recipe)
         db.commit()
@@ -186,7 +264,9 @@ async def create_recipe(recipe: RecipeCreate, db: Session = Depends(get_db)):
             id=db_recipe.id,
             title=db_recipe.title,
             ingredients=db_recipe.ingredients,
-            instructions=db_recipe.instructions
+            instructions=db_recipe.instructions,
+            created_at=db_recipe.created_at,
+            parent_id=db_recipe.parent_id
         )
     except Exception as e:
         db.rollback()
@@ -202,7 +282,9 @@ async def get_recipes(db: Session = Depends(get_db)):
                 id=recipe.id,
                 title=recipe.title,
                 ingredients=recipe.ingredients,
-                instructions=recipe.instructions
+                instructions=recipe.instructions,
+                created_at=recipe.created_at,
+                parent_id=recipe.parent_id
             )
             for recipe in recipes
         ]
@@ -222,7 +304,9 @@ async def get_recipe(recipe_id: int, db: Session = Depends(get_db)):
             id=recipe.id,
             title=recipe.title,
             ingredients=recipe.ingredients,
-            instructions=recipe.instructions
+            instructions=recipe.instructions,
+            created_at=recipe.created_at,
+            parent_id=recipe.parent_id
         )
     except HTTPException:
         raise
@@ -375,6 +459,160 @@ async def modify_recipe(recipe_id: int, modification_request: ModificationReques
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error modifying recipe: {str(e)}")
+
+@app.post("/api/recipes/{recipe_id}/save-modified")
+async def save_modified_recipe(recipe_id: int, recipe_data: RecipeCreate, db: Session = Depends(get_db)):
+    """POST endpoint to save a modified version of a recipe"""
+    try:
+        # Create new recipe version
+        new_recipe = RecipeDB(
+            title=recipe_data.title,
+            ingredients=recipe_data.ingredients,
+            instructions=recipe_data.instructions,
+            parent_id=recipe_id
+        )
+        
+        db.add(new_recipe)
+        db.commit()
+        db.refresh(new_recipe)
+        
+        return RecipeResponse.from_orm(new_recipe)
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error saving modified recipe: {str(e)}")
+
+@app.get("/api/recipes/{recipe_id}/history")
+async def get_recipe_history(recipe_id: int, db: Session = Depends(get_db)):
+    """GET endpoint to retrieve recipe history including all versions"""
+    try:
+        # Get the base recipe
+        base_recipe = db.query(RecipeDB).filter(RecipeDB.id == recipe_id).first()
+        
+        if base_recipe is None:
+            raise HTTPException(status_code=404, detail=f"Recipe with ID {recipe_id} not found")
+        
+        # Get all versions (including the base recipe)
+        all_versions = []
+        
+        # If this is a version, find the base recipe
+        if base_recipe.parent_id:
+            base_recipe = db.query(RecipeDB).filter(RecipeDB.id == base_recipe.parent_id).first()
+            if base_recipe is None:
+                raise HTTPException(status_code=404, detail="Base recipe not found")
+        
+        # Add base recipe
+        all_versions.append(RecipeResponse.from_orm(base_recipe))
+        
+        # Add all versions
+        versions = db.query(RecipeDB).filter(RecipeDB.parent_id == base_recipe.id).order_by(RecipeDB.created_at).all()
+        for version in versions:
+            all_versions.append(RecipeResponse.from_orm(version))
+        
+        return {
+            "base_recipe": RecipeResponse.from_orm(base_recipe),
+            "versions": all_versions
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving recipe history: {str(e)}")
+
+@app.post("/api/recipes/{recipe_id}/photos")
+async def add_recipe_photo(recipe_id: int, photo_data: RecipePhotoCreate, db: Session = Depends(get_db)):
+    """POST endpoint to add a photo to a recipe"""
+    try:
+        # Check if recipe exists
+        recipe = db.query(RecipeDB).filter(RecipeDB.id == recipe_id).first()
+        if recipe is None:
+            raise HTTPException(status_code=404, detail=f"Recipe with ID {recipe_id} not found")
+        
+        # Create new photo
+        new_photo = RecipePhoto(
+            recipe_id=recipe_id,
+            photo_data=photo_data.photo_data,
+            photo_description=photo_data.photo_description
+        )
+        
+        db.add(new_photo)
+        db.commit()
+        db.refresh(new_photo)
+        
+        return RecipePhotoResponse.from_orm(new_photo)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error adding photo: {str(e)}")
+
+@app.get("/api/recipes/{recipe_id}/photos")
+async def get_recipe_photos(recipe_id: int, db: Session = Depends(get_db)):
+    """GET endpoint to retrieve all photos for a recipe"""
+    try:
+        # Check if recipe exists
+        recipe = db.query(RecipeDB).filter(RecipeDB.id == recipe_id).first()
+        if recipe is None:
+            raise HTTPException(status_code=404, detail=f"Recipe with ID {recipe_id} not found")
+        
+        # Get all photos
+        photos = db.query(RecipePhoto).filter(RecipePhoto.recipe_id == recipe_id).order_by(RecipePhoto.created_at.desc()).all()
+        
+        return [RecipePhotoResponse.from_orm(photo) for photo in photos]
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving photos: {str(e)}")
+
+@app.post("/api/recipes/{recipe_id}/ratings")
+async def add_recipe_rating(recipe_id: int, rating_data: RecipeRatingCreate, db: Session = Depends(get_db)):
+    """POST endpoint to add a rating to a recipe"""
+    try:
+        # Check if recipe exists
+        recipe = db.query(RecipeDB).filter(RecipeDB.id == recipe_id).first()
+        if recipe is None:
+            raise HTTPException(status_code=404, detail=f"Recipe with ID {recipe_id} not found")
+        
+        # Validate rating
+        if rating_data.rating < 1 or rating_data.rating > 5:
+            raise HTTPException(status_code=400, detail="Rating must be between 1 and 5")
+        
+        # Create new rating
+        new_rating = RecipeRating(
+            recipe_id=recipe_id,
+            rating=rating_data.rating,
+            review=rating_data.review
+        )
+        
+        db.add(new_rating)
+        db.commit()
+        db.refresh(new_rating)
+        
+        return RecipeRatingResponse.from_orm(new_rating)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error adding rating: {str(e)}")
+
+@app.get("/api/recipes/{recipe_id}/ratings")
+async def get_recipe_ratings(recipe_id: int, db: Session = Depends(get_db)):
+    """GET endpoint to retrieve all ratings for a recipe"""
+    try:
+        # Check if recipe exists
+        recipe = db.query(RecipeDB).filter(RecipeDB.id == recipe_id).first()
+        if recipe is None:
+            raise HTTPException(status_code=404, detail=f"Recipe with ID {recipe_id} not found")
+        
+        # Get all ratings
+        ratings = db.query(RecipeRating).filter(RecipeRating.recipe_id == recipe_id).order_by(RecipeRating.created_at.desc()).all()
+        
+        return [RecipeRatingResponse.from_orm(rating) for rating in ratings]
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving ratings: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
